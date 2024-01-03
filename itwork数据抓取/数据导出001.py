@@ -16,7 +16,7 @@ db_name = "wms_ibd_center"
 # 5.环境变量 福州仓科
 env = 1435
 # 6.导出的文件路径
-file_path = 'D:/data/数据导出001.csv'
+file_path = 'D:/data/数据导出001.xlsx'
 
 # 请求参数SQL,目前最大数据仅支持1000, 条件中from要小写
 param = {
@@ -36,7 +36,6 @@ def exec_import():
     print('开始写入数据条数: ' + str(len(data_1['rows'])))
     df = pd.DataFrame(data_1['rows'], columns=data_1['column_list'])
     file_suffix = file_path.split(".")[1]
-    print(file_suffix == 'xlsx')
     # 写成csv格式数据
     if file_suffix == "csv":
         df.to_csv(file_path.split(".")[0] + ".csv", encoding='utf-8-sig', index=False)
@@ -45,14 +44,21 @@ def exec_import():
         write_excel(df, file_path)
     print('写入成功')
 
-
-def append_excel():
+# 追加数据
+def append_data():
     data_1 = send_data(param)
     print("追加数据条数：" + str(len(data_1['rows'])))
+    file_suffix = file_path.split(".")[1]
     df_new = pd.DataFrame(data_1['rows'], columns=data_1['column_list'])
-    df = pd.read_excel(file_path, dtype=str)
-    df = pd.concat([df, df_new], axis=0)
-    write_excel(df, file_path)
+    # 写成csv格式数据
+    if file_suffix == "csv":
+        df = pd.read_csv(file_path, dtype=str)
+        df = pd.concat([df, df_new], axis=0)
+        df.to_csv(file_path, encoding='utf-8-sig', index=False)
+    if file_suffix == "xlsx":
+        df = pd.read_excel(file_path, dtype=str)
+        df = pd.concat([df, df_new], axis=0)
+        write_excel(df, file_path)
     print('追加结束')
 
 
@@ -103,5 +109,5 @@ def send_data(sendparam):
 
 
 if __name__ == '__main__':
-    exec_import()
-    # append_excel()
+    # exec_import()
+    append_data()
