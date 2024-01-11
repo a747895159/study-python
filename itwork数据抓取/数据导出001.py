@@ -6,7 +6,7 @@ import requests
 from excel_util import write_excel
 
 # 1.authorization 鉴权
-authorization = ""
+authorization = "c27311a9-28e5-41cb-80c4-0481e1faf6c8"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 query_sql = "SELECT id,receipt_no as '单号',receipt_status '状态',from_warehouse_id,created_at from  ibd_receipt where  created_at>'2023-12-11 00:00:00' and  created_at < '2024-01-01 03:00:00' and warehouse_id = 648270039501710466"
 # 3.应用编码
@@ -140,3 +140,7 @@ if __name__ == '__main__':
     # exec_import()
     exec_import_loop()
     # append_data()
+    age = 21
+    name = 'jiali'
+    print('name:%s,age:%d' % (name, age))
+    print(f'name:{name},age:{age}')
