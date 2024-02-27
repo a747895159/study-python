@@ -8,6 +8,7 @@ from excel_util import write_excel
 # 1.authorization 鉴权
 authorization = "c27311a9-28e5-41cb-80c4-0481e1faf6c8"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
+# 循环查询数据，id 与 created_at 对应的sql字段中必有
 query_sql = "SELECT id,receipt_no as '单号',receipt_status '状态',from_warehouse_id,created_at from  ibd_receipt where  created_at>'2023-12-11 00:00:00' and  created_at < '2024-01-01 03:00:00' and warehouse_id = 648270039501710466"
 # 3.应用编码
 instance_id = 4199
@@ -48,7 +49,7 @@ def write_data(data, columns):
         write_excel(df, file_path)
     print('写入成功')
 
-
+# 循环查询数据，id 与 created_at 对应的sql字段中必有
 def exec_import_loop():
     # 校验数据量
     count = sql_count()
@@ -70,7 +71,7 @@ def exec_import_loop():
         last_id = int(data_2['rows'][-1][0])
         data_list.extend(data_2['rows'])
         total = total + page_size
-        time.sleep(5)
+        time.sleep(1)
 
     write_data(data_list, column_list)
 
