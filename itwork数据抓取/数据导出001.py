@@ -1,19 +1,24 @@
 import copy
+import math
 import time
+
 import pandas as pd
 import requests
 
+from datetime import datetime
 from excel_util import write_excel
 
 # 1.authorization 鉴权
-authorization = "c27311a9-28e5-41cb-80c4-0481e1faf6c8"
+authorization = "47bddbf9-ccad-4731-a13c-9facb439e0c2"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
-query_sql = "SELECT id,receipt_no as '单号',receipt_status '状态',from_warehouse_id,created_at from  ibd_receipt where  created_at>'2023-12-11 00:00:00' and  created_at < '2024-01-01 03:00:00' and warehouse_id = 648270039501710466"
+query_sql = ""
+
+
 # 3.应用编码
-instance_id = 4199
+instance_id = 4198
 # 4.数据库名称
-db_name = "wms_ibd_center"
+db_name = "wms_inv_center"
 # 5.环境变量 福州仓科
 env = 1435
 # 6.导出的文件路径
@@ -38,7 +43,8 @@ def exec_import():
 
 
 def write_data(data, columns):
-    print('开始写入数据条数: ' + str(len(data)))
+    curr_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{curr_time},开始写入数据条数:{str(len(data))} ')
     df = pd.DataFrame(data, columns=columns)
     file_suffix = file_path.split(".")[1]
     # 写成csv格式数据
@@ -49,10 +55,14 @@ def write_data(data, columns):
         write_excel(df, file_path)
     print('写入成功')
 
+
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
 def exec_import_loop():
     # 校验数据量
     count = sql_count()
+    curr_page = 1
+    total_page = math.ceil(count / page_size)
+    print(f"count 总数据条数:{count},总页数：{total_page}")
     # 首次查询
     query_param = copy.deepcopy(param)
     query_param['sqlContent'] = copy.deepcopy(query_sql) + " order by id desc,created_at asc"
@@ -67,11 +77,19 @@ def exec_import_loop():
         sql1 = copy.deepcopy(query_sql)
         # 按照Id降序 方式循环查询数据
         query_param['sqlContent'] = sql1 + " and id <" + str(last_id) + " order by id desc,created_at asc "
-        data_2 = send_data(query_param)
+        location = str(curr_page) + '/' + str(total_page)
+        try:
+            data_2 = retry_send(query_param, location, 5)
+        except Exception as e:
+            curr_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{curr_time},当前位置: {location} ,last_id: {last_id},请求SQL: {query_param['sqlContent']}")
+            print()
+            raise e
         last_id = int(data_2['rows'][-1][0])
         data_list.extend(data_2['rows'])
         total = total + page_size
         time.sleep(1)
+        curr_page += 1
 
     write_data(data_list, column_list)
 
@@ -79,7 +97,8 @@ def exec_import_loop():
 # 追加数据
 def append_data():
     data_1 = send_data(param)
-    print("追加数据条数：" + str(len(data_1['rows'])))
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{current_time},追加数据条数：{str(len(data_1['rows']))}")
     file_suffix = file_path.split(".")[1]
     df_new = pd.DataFrame(data_1['rows'], columns=data_1['column_list'])
     # 写成csv格式数据
@@ -100,9 +119,25 @@ def sql_count():
     count_param['sqlContent'] = "SELECT count(*) " + sql_0[sql_0.find("from"):]
     data = send_data(count_param)
     c0 = data['rows'][0][0]
-    print("count 总数据条数： " + c0)
     int_c = int(c0)
     return int_c
+
+
+def retry_send(sendparam, location,max_retries=5):
+    retries = 0
+    while retries < max_retries:
+        try:
+            data = send_data(sendparam)
+            return data
+        except Exception as e:
+            # 发生异常时，打印错误信息，并重试
+            retries += 1
+            # 如果达到最大重试次数后仍然失败，抛出异常
+            if retries == max_retries:
+                raise e
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{current_time},当前位置: {location},异常重试：{retries},异常: {e}")
+            time.sleep(2)
 
 
 def send_data(sendparam):
@@ -123,25 +158,27 @@ def send_data(sendparam):
     obj = resp.json()
     data = obj['data']
     if obj['code'] != 200000:
-        print(resp.text)
-        raise Exception("响应报文格式异常")
+        raise Exception("返回内容1,响应报文数据异常 " + resp.text)
     if data is None:
-        print(resp.text)
-        raise Exception("响应报文数据异常")
+        raise Exception("返回内容2,响应报文数据异常 " + resp.text)
     if isinstance(data, str):
-        print(resp.text)
-        raise Exception(data)
+        raise Exception("返回内容3： " + data)
     if data['rows'] is None:
-        print(resp.text)
-        raise Exception("响应报文数据异常")
+        raise Exception("返回内容4,响应报文数据异常 " + resp.text)
     return data
 
 
 if __name__ == '__main__':
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{current_time},开始执行')
+    print('----'*30)
     # exec_import()
     exec_import_loop()
     # append_data()
     age = 21
     name = 'jiali'
     print('name:%s,age:%d' % (name, age))
-    print(f'name:{name},age:{age}')
+    print()
+    print('----'*30)
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{current_time},执行成功')
