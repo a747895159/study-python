@@ -158,13 +158,13 @@ def send_data(sendparam):
     obj = resp.json()
     data = obj['data']
     if obj['code'] != 200000:
-        raise Exception("返回内容1,响应报文数据异常 " + resp.text)
+        raise Exception("异常1 " + resp.text)
     if data is None:
-        raise Exception("返回内容2,响应报文数据异常 " + resp.text)
+        raise Exception("异常2 " + resp.text)
     if isinstance(data, str):
-        raise Exception("返回内容3： " + data)
+        raise Exception("异常3 " + data)
     if data['rows'] is None:
-        raise Exception("返回内容4,响应报文数据异常 " + resp.text)
+        raise Exception("异常4 " + resp.text)
     return data
 
 
