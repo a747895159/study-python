@@ -4,23 +4,24 @@ import time
 
 import pandas as pd
 import requests
+import re
 
 from datetime import datetime
 from excel_util import write_excel
 
 # 1.authorization 鉴权
-authorization = "47bddbf9-ccad-4731-a13c-9facb439e0c2"
+authorization = "eab02bd7-bd4d-48b8-ba3f-df3638645f79"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
 query_sql = ""
 
 
 # 3.应用编码
-instance_id = 4198
+instance_id = 2399
 # 4.数据库名称
 db_name = "wms_inv_center"
 # 5.环境变量 福州仓科
-env = 1435
+env = 1645
 # 6.导出的文件路径
 file_path = 'D:/data/数据导出001.xlsx'
 # 7.每页条数
@@ -168,17 +169,45 @@ def send_data(sendparam):
     return data
 
 
-if __name__ == '__main__':
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f'{current_time},开始执行')
-    print('----'*30)
-    # exec_import()
-    exec_import_loop()
-    # append_data()
+# 归档库数据还原，生成insert
+def archive_sql_revert():
+    table_name = re.search(r'from\s+(\w+)\s+where', query_sql).group(1)
+    data = send_data(param)
+    insert_statements = []
+    curr_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rows = data['rows']
+    print(f'{curr_time},总共条数:{str(len(rows))} ')
+    print()
+    for row in rows:
+        # 准备列名和值的占位符
+        columns = ', '.join(data['column_list'])
+        values = ', '.join([f"'{str(val)}'" if val is not None else 'NULL' for val in row])
+        # print(values)
+        # 构建INSERT语句
+        insert_stmt = f"INSERT INTO {table_name} ({columns}) VALUES ({values});"
+
+        # 将INSERT语句和值添加到列表中
+        insert_statements.append(insert_stmt)
+
+    for stmt in insert_statements:
+        print(stmt)
+
+def print_test():
     age = 21
     name = 'jiali'
     print('name:%s,age:%d' % (name, age))
     print()
+
+if __name__ == '__main__':
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{current_time},开始执行')
+    print('----'*30)
+    archive_sql_revert()
+    # exec_import()
+    # exec_import_loop()
+    # append_data()
+    print()
     print('----'*30)
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f'{current_time},执行成功')
+
