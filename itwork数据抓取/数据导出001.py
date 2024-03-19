@@ -13,17 +13,18 @@ from excel_util import write_excel
 authorization = "eab02bd7-bd4d-48b8-ba3f-df3638645f79"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
-query_sql = ""
+query_sql = "select * from inv_move_detail where warehouse_id = 648270039501710127 and  move_id in (826724776059330560,827087081251008512);"
+
 
 
 # 3.应用编码
 instance_id = 2399
 # 4.数据库名称
-db_name = "wms_inv_center"
+db_name = "wms_inv_center_16"
 # 5.环境变量 福州仓科
 env = 1645
 # 6.导出的文件路径
-file_path = 'D:/data/数据导出001.xlsx'
+file_path = 'D:/data/数据导出003.xlsx'
 # 7.每页条数
 page_size = 1000
 
@@ -169,7 +170,7 @@ def send_data(sendparam):
     return data
 
 
-# 归档库数据还原，生成insert
+# 归档库数据还原，生成insert。一定要小写的form 和 where
 def archive_sql_revert():
     table_name = re.search(r'from\s+(\w+)\s+where', query_sql).group(1)
     data = send_data(param)
