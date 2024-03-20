@@ -10,11 +10,10 @@ from datetime import datetime
 from excel_util import write_excel
 
 # 1.authorization 鉴权
-authorization = "eab02bd7-bd4d-48b8-ba3f-df3638645f79"
+authorization = ""
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
-query_sql = "select * from inv_move_detail where warehouse_id = 648270039501710127 and  move_id in (826724776059330560,827087081251008512);"
-
+query_sql = ""
 
 
 # 3.应用编码
@@ -23,8 +22,10 @@ instance_id = 2399
 db_name = "wms_inv_center_16"
 # 5.环境变量 福州仓科
 env = 1645
-# 6.导出的文件路径
+# 6.导出的文件路径，支持.csv 和 xlsx格式
 file_path = 'D:/data/数据导出003.xlsx'
+
+
 # 7.每页条数
 page_size = 1000
 
@@ -203,10 +204,12 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f'{current_time},开始执行')
     print('----'*30)
+    # 归档数据生成insert语句
     archive_sql_revert()
+    # 1000条以内数据导出
     # exec_import()
+    # 超过1000条数据，循环导出
     # exec_import_loop()
-    # append_data()
     print()
     print('----'*30)
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
