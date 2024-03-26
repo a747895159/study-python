@@ -10,7 +10,7 @@ from datetime import datetime
 from excel_util import write_excel
 
 # 1.authorization 鉴权
-authorization = ""
+authorization = "2f458d23-7e13-4c65-a341-3959749a83a1"
 # 2.请求Sql 语句中的 from 一定要小写; 最大仅支持1000条
 # 循环查询数据，id 与 created_at 对应的sql字段中必有
 query_sql = ""
@@ -19,11 +19,11 @@ query_sql = ""
 # 3.应用编码
 instance_id = 2399
 # 4.数据库名称
-db_name = "wms_inv_center_16"
+db_name = "wms_inv_center_1"
 # 5.环境变量 福州仓科
 env = 1645
 # 6.导出的文件路径，支持.csv 和 xlsx格式
-file_path = 'D:/data/数据导出003.xlsx'
+file_path = 'D:/data/log_002.csv'
 
 
 # 7.每页条数
@@ -190,9 +190,11 @@ def archive_sql_revert():
 
         # 将INSERT语句和值添加到列表中
         insert_statements.append(insert_stmt)
-
-    for stmt in insert_statements:
-        print(stmt)
+    # for stmt in insert_statements:
+    #     print(stmt)
+    with open('D:/data/' + db_name+'.txt', 'w', encoding='utf-8') as file:
+        for stmt in insert_statements:
+            file.write("%s\n" % stmt)
 
 def print_test():
     age = 21
